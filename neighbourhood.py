@@ -66,6 +66,8 @@ def swap_in_same_sequence(solution, jobs_to_ignore):
 # implementation using list insert, this will shift the index position
 # of other values
 def shift_in_same_sequence(solution, jobs_to_ignore, width):
+
+    logger.info("shift in same sequence ...")
     solutions = [] 
     for idx, _ in enumerate(solution.teams):
         j = solution.get_job_seq_at(idx)
@@ -110,6 +112,7 @@ def shift_in_same_sequence(solution, jobs_to_ignore, width):
 # implementation using list swap values for a given index
 # (use this)
 def swap_in_same_sequence_1(solution, jobs_to_ignore, width):
+    logger.info("swap in same sequence ...")
     solutions = [] 
     for idx, _ in enumerate(solution.teams):
         j = solution.get_job_seq_at(idx)
@@ -178,6 +181,8 @@ def swapvalues(l, frm, to):
      return ll, affected     
 
 def remove_solution_neighbourhood(solution, jobs_to_ignore):
+
+    logger.info("remove in solution ...")
     solutions = [] 
 
     for idx, _ in enumerate(solution.teams):
@@ -215,6 +220,7 @@ def remove_solution_neighbourhood(solution, jobs_to_ignore):
 
 #
 def insert_unused_neighbourhood(solution, jobs_to_ignore):
+    logger.info("insert unused  ...")
     solutions = [] 
     
     for jb in solution.unfulfilled.items():
@@ -242,6 +248,8 @@ def insert_unused_neighbourhood(solution, jobs_to_ignore):
 
 
 def replace_with_unused_neighbourhood(solution, jobs_to_ignore):
+
+    logger.info("replace with unused ...")
     solutions = [] 
     for jb in solution.unfulfilled.items():
 

@@ -45,6 +45,7 @@ class Optimizer:
         # loop through n iterations
         for n in range(0, self.config['iterations']):
             logger.info('iteration no: {}'.format(n))
+            logger.info('initial jobs sequence: {}'.format(best_solution.get_job_seq_at(0).jobs_seq.jobs))
 
             # get current solution neighbours (pass tabu set)
             neighbourhood = collect_solution_neighbours(best_solution, set(tabu_queue))
@@ -66,7 +67,7 @@ class Optimizer:
                     best_fitness = f
                     logger.info('better: {}'.format(len(best_fitness)))
 
-            logger.info('best in iteration neghbourhood is: {}'.format(len(best_in_iteration)))
+            logger.info('best in iteration neghbourhood is: {}'.format(best_in_iteration))
 
             # tabu list
             tabu_queue.extendleft(current_solution.affected_jobs)

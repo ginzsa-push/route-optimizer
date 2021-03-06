@@ -28,7 +28,7 @@ add to candidates list for team's job sequence
 def add_to_canditate_list(config, distances, candidates, unfulfilled, job_seq, team, team_idx):
     
     count = 0
-    reject_after_count = 50
+    reject_after_count = 30
 
     # for each job unfulfilled in best solution
     for idx, j in enumerate(unfulfilled.items()):
