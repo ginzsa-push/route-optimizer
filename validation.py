@@ -1,7 +1,9 @@
 
 from utils import clone_pre_post_jobs
 from travel_calculator import total_travel_time_in_sec, sum_no_bikes_except_last_job, calculate_total_time_in_seconds
+import logging
 
+logger = logging.getLogger()
 '''
 validate that distances are present for all jobs
 '''
@@ -24,7 +26,7 @@ def is_distance_valid_for_job_vehicle(distances, jobs_seq, team):
     jobs_to_validate = [jobs_seq.start] + jobs_seq.jobs + [jobs_seq.end]
     for job in jobs_to_validate:
         if previous_job is not None:
-            # if jobs are not in distance travel return False
+            # if station data is not in distance travel matrix return False
             if distances.get_travel_time(previous_job, job, team.vehicle.speed) == -1:
                 return False
         previous_job = job
@@ -48,7 +50,9 @@ def is_journey_capacity_within_constrains(solution):
     return True
 
 def is_journey_capacity_within_vehicle_constrain(jobs, vehicle):
-    return sum_no_bikes_except_last_job(jobs) < vehicle.capacity
+    no_bikes_so_far = sum_no_bikes_except_last_job(jobs)
+    logger.info('no of bikes so far {}, vehicle capacity: {}'.format(no_bikes_so_far, vehicle.capacity))
+    return  no_bikes_so_far < vehicle.capacity
     
 
 
@@ -69,7 +73,9 @@ def is_journey_time_within_constrains(distances, solution):
     return True
 
 def is_journey_time_within_team_constrains(distances, jobs, team):
-    return total_travel_time_in_sec(distances, jobs, team) < team.max_single_journey_time_sec
+    total_travel_time = total_travel_time_in_sec(distances, jobs, team)
+    logger.info('total travel time in sec {}, max team single journey: {}'.format(total_travel_time, team.max_single_journey_time_sec))
+    return total_travel_time < team.max_single_journey_time_sec
 
 
 '''
@@ -90,16 +96,23 @@ def is_total_journey_time_within_constrains(distances, solution):
 is total journey within team constrains
 '''
 def is_total_journey_time_within_team_constrains(distances, jobs, team):
-    return calculate_total_time_in_seconds(distances, jobs, team) < team.time_available_sec
+    total_time_in_secs = calculate_total_time_in_seconds(distances, jobs, team)
+    logger.info('total time in sec: {}, time available: {}'.format(total_time_in_secs, team.time_available_sec))
+    return  total_time_in_secs < team.time_available_sec
 
 '''
 is jobs sequence valid
 '''
 def is_cadidate_valid(distances, jobs, team):
-    return is_distance_valid_for_job_vehicle(distances, jobs, team) and \
-                        is_journey_capacity_within_vehicle_constrain(jobs, team.vehicle) and \
-                        is_journey_time_within_team_constrains(distances, jobs, team) and \
-                        is_total_journey_time_within_team_constrains(distances, jobs, team)
+    logger.info('validating  jobs: {}'.format(len(jobs.jobs)))
+    v1 = is_distance_valid_for_job_vehicle(distances, jobs, team)
+    v2 = is_journey_capacity_within_vehicle_constrain(jobs, team.vehicle)
+    v3 = is_journey_time_within_team_constrains(distances, jobs, team)
+    v4 = is_total_journey_time_within_team_constrains(distances, jobs, team)
+    rs = v1 and v2 and v3 and v4 
+    logger.info('four validations: {}, {}, {}, {} = {}'.format(v1, v2, v3, v4, rs))
+    return rs
+                       
 
 
 '''

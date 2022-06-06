@@ -42,22 +42,22 @@ def add_to_canditate_list(config, distances, candidates, unfulfilled, job_seq, t
             post_job_seq = JobsSequence(jobs=post, start=job_seq.start, end=job_seq.end)
             # comply with validations : 
             if not is_cadidate_valid(distances, post_job_seq, team):
-                logger.debug('temp job not valid: {}'.format(j))
+                logger.info('temp job not valid: {}'.format(j))
 
                 # reject after 100 consecutive rejections TODO review this
                 count += 1
                 if count > reject_after_count:
-                    logger.debug('{} rejected candidates, reject {}'.format(reject_after_count, len(candidates)))
+                    logger.info('{} rejected candidates, reject {}'.format(reject_after_count, len(candidates)))
                     return
                 continue
-
-            count = 0
-            # calculate fitness
-            fitness = calculate_jobs_fitness(config, distances, post, team) - calculate_jobs_fitness(config, distances, pre, team)
-            # if fitness is valid (assumed valid)
-                # create candidate
-                # add candidate to a list of "moves" candidates sorted by best fit
-            candidates.append([team_idx,  idx, j[0], j[1], fitness])
+            else:
+                count = 0
+                # calculate fitness
+                fitness = calculate_jobs_fitness(config, distances, post, team) - calculate_jobs_fitness(config, distances, pre, team)
+                # if fitness is valid (assumed valid)
+                    # create candidate
+                    # add candidate to a list of "moves" candidates sorted by best fit
+                candidates.append([team_idx,  idx, j[0], j[1], fitness])
 
 '''
 use pandas to sort candidates
@@ -98,7 +98,7 @@ def apply_candidate(solution, candidate):
 '''
 extract candidates for each iteration
 '''
-def extract_candidates_for_solution(config, distances, candidates, unfulfilled, job_seq, team, team_idx, to_solution):
+def extract_candidates_for_solution(config, distances, candidates, team, team_idx, to_solution):
 
     # pick and remove best "move" candidate (peek from top)
     candidate, new_candidates = get_best_candidate(candidates)
@@ -115,7 +115,7 @@ def extract_candidates_for_solution(config, distances, candidates, unfulfilled, 
         # extract  more candidates with the new addition
         add_to_canditate_list(config, distances, candidates, to_solution.unfulfilled, to_solution.team_jobs[team_idx].jobs_seq, team, team_idx)
         # repeat
-        extract_candidates_for_solution(config, distances, candidates, to_solution.unfulfilled, to_solution.team_jobs[team_idx].jobs_seq, team, team_idx, to_solution)
+        extract_candidates_for_solution(config, distances, candidates, team, team_idx, to_solution)
     
     logger.debug('... end candidate creation')
    
@@ -126,4 +126,4 @@ def build_solution_candidate(config, distances, candidates, best_solution):
     logger.info('building solution with candidates ... {}'.format(len(candidates)))
     for idx, team in enumerate(best_solution.teams):
         logger.info('extract candidate for solution for team ... {}'.format(idx))
-        extract_candidates_for_solution(config, distances, candidates, best_solution.unfulfilled, best_solution.team_jobs[idx].jobs_seq, team, idx, best_solution)
+        extract_candidates_for_solution(config, distances, candidates, team, idx, best_solution)
