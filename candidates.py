@@ -1,11 +1,10 @@
-
 import logging
 
-import pandas as pd
 from validation import is_cadidate_valid
 from fitness import calculate_jobs_fitness
 from utils import clone_pre_post_jobs, clone_pre_post_to_jobs
 from model import JobsSequence
+from model import Candidate
 
 logger = logging.getLogger()
 
@@ -13,117 +12,145 @@ logger = logging.getLogger()
 create candidate list from solution
 '''
 def create_canditate_list(config, distances, best_solution):
+
     logger.info('creating initial candidate list ...')
-    # candidates
-    candidates = []
-    # for each team 
-    for i, team in enumerate(best_solution.teams):
-        add_to_canditate_list(config, distances, candidates, best_solution.unfulfilled, best_solution.team_jobs[i].jobs_seq, team, i)
-        
-    return candidates
-
-'''
-add to candidates list for team's job sequence 
-'''
-def add_to_canditate_list(config, distances, candidates, unfulfilled, job_seq, team, team_idx):
+    candidate_store = CandidateStore(config=config, distances=distances)
+    candidate_store.create_list(best_solution)
+    return candidate_store
     
-    count = 0
-    reject_after_count = 30
-
-    # for each job unfulfilled in best solution
-    for idx, j in enumerate(unfulfilled.items()):
-        # put jobs in different index positions in the job sequence
-        for position in range(0, len(job_seq.jobs) + 1):
-            
-             # the j job will be temporarely added (post) to the job sequence for 'ahead' validations
-            pre, post = clone_pre_post_to_jobs(position, job_seq.jobs, j)
-            
-            # post addition job sequence
-            post_job_seq = JobsSequence(jobs=post, start=job_seq.start, end=job_seq.end)
-            # comply with validations : 
-            if not is_cadidate_valid(distances, post_job_seq, team):
-                logger.info('temp job not valid: {}'.format(j))
-
-                # reject after 100 consecutive rejections TODO review this
-                count += 1
-                if count > reject_after_count:
-                    logger.info('{} rejected candidates, reject {}'.format(reject_after_count, len(candidates)))
-                    return
-                continue
-            else:
-                count = 0
-                # calculate fitness
-                fitness = calculate_jobs_fitness(config, distances, post, team) - calculate_jobs_fitness(config, distances, pre, team)
-                # if fitness is valid (assumed valid)
-                    # create candidate
-                    # add candidate to a list of "moves" candidates sorted by best fit
-                candidates.append([team_idx,  idx, j[0], j[1], fitness])
-
-'''
-use pandas to sort candidates
-'''
-def candidate_dataframe_sort_by_fitness_desc(candidates):
-    df = pd.DataFrame(candidates, columns=['team_idx', 'job_idx', 'dock_id', 'bikes', 'fitness'])
-    df = df.sort_values(by='fitness', ascending=False)
-    return df
-
 '''
 get best candidate
 '''
-def get_best_candidate(candidates):
-    df = candidate_dataframe_sort_by_fitness_desc(candidates)
-    candidate = df.head(1).values.tolist()[0]
-    # delete head 1
-    df = df.drop(df.index[0])
-    # delete candidates with the same job dock
-    df = df.drop(df[(df['dock_id'] == candidate[2] ) & (df['bikes'] == candidate[3]) & (df['team_idx'] == candidate[0])].index)
-    # drop duplicates
-    df = df.drop_duplicates()
-    candidates =  df.values.tolist() # candidate deleted from list
-    return candidate, candidates
+def sort_get_best_candidate(candidate_store):
+    candidate_store.all_candidates.sort(key=lambda x: x.fitness, reverse=True)
+    return candidate_store.all_candidates[0]
 
 '''
 apply candidate to solution
 '''
 def apply_candidate(solution, candidate):
     # [team_idx,  idx, j[0], j[1], fitness]
-    #logger.info('unfulfilled: {}'.format(len(solution.unfulfilled)))
-    job = (candidate[2], candidate[3])
-    team_idx = candidate[0]
-    job_seq_idx = candidate[1]
-
-    solution.add_job(job, team_idx, job_seq_idx=job_seq_idx)
-
+    solution.add_job(candidate.job, candidate.team.id, job_seq_idx=candidate.position)
 
 '''
-extract candidates for each iteration
+update candidates store for each iteration
 '''
-def extract_candidates_for_solution(config, distances, candidates, team, team_idx, to_solution):
-
-    # pick and remove best "move" candidate (peek from top)
-    candidate, new_candidates = get_best_candidate(candidates)
-    candidates = new_candidates
-
-    #logger.info('candidate: {}'.format(candidate))
-
-    apply_candidate(to_solution, candidate)
-    #logger.info('solution candidates ... {}'.format(to_solution.team_jobs[team_idx].jobs_seq.jobs))
+def update_candidates_store_for_solution(config, distances, candidates_store, team, to_solution):
 
     # if still have candidates
-    if len(candidates) > 0:
-        #logger.info('extract more candidates after new job addition: {}'.format(len(to_solution.team_jobs[team_idx].jobs_seq.jobs)))
+    if candidates_store.size() > 0:
+        # pick and remove best "move" candidate (peek from top)
+        candidate = sort_get_best_candidate(candidates_store)
+
+        logger.debug('candidate: {}'.format(candidate))
+        apply_candidate(to_solution, candidate)
+        logger.debug('solution candidates ... {}'.format(to_solution.team_jobs_map[team.id].jobs_seq.jobs))
+
         # extract  more candidates with the new addition
-        add_to_canditate_list(config, distances, candidates, to_solution.unfulfilled, to_solution.team_jobs[team_idx].jobs_seq, team, team_idx)
+        candidates_store.remove_candidate(candidate)
+        candidates_store.create_candidates_for_team(to_solution.unfulfilled, to_solution.team_jobs_map[team.id])
+
         # repeat
-        extract_candidates_for_solution(config, distances, candidates, team, team_idx, to_solution)
+        update_candidates_store_for_solution(config, distances, candidates_store, team, to_solution)
     
     logger.debug('... end candidate creation')
    
-   
+def build_solution_candidate(config, distances, candidate_store, best_solution):
 
-def build_solution_candidate(config, distances, candidates, best_solution):
+    logger.info('building solution with candidates ... {}'.format(candidate_store.size()))
+    for team in best_solution.teams:
+        logger.info('extract candidate for solution for team:{} vehicle: {}'.format(team.id, team.vehicle))
+        update_candidates_store_for_solution(config, distances, candidate_store, team, best_solution)
+ 
+'''
+jobs is list of dock id, no of broken bikes touples ' ('DOCK_0', 0) '
+'''
+class CandidateStore:
+    def __init__(self, *args, **kwargs):
+        self.all_candidates = []
+        self.candidates_by_team = {}
+        self.candidates_by_job = {}
+        self.candidate_holders = {}
 
-    logger.info('building solution with candidates ... {}'.format(len(candidates)))
-    for idx, team in enumerate(best_solution.teams):
-        logger.info('extract candidate for solution for team ... {}'.format(idx))
-        extract_candidates_for_solution(config, distances, candidates, team, idx, best_solution)
+        self.config = kwargs.get('config', None)
+        self.distances = kwargs.get('distances', None)
+
+    def create_list(self, solution):
+        for t in solution.teams:
+            self.candidates_by_team[t] = []
+
+        for tj in list(solution.team_jobs_map.values()):
+            self.create_candidates_for_team(solution.unfulfilled, tj)
+
+
+    def create_candidates_for_team(self, unfullfilled, team_jobs):
+
+        for j in unfullfilled.items():
+            team = team_jobs.team
+            job_seq =  team_jobs.jobs_seq
+             # put jobs in different index positions in the job sequence
+            for position in range(0, len(job_seq.jobs) + 1):
+                pre, post = clone_pre_post_to_jobs(position, job_seq.jobs, j)
+                # post addition job sequence
+                post_job_seq = JobsSequence(jobs=post, start=job_seq.start, end=job_seq.end)
+                # comply with validations : 
+                if not is_cadidate_valid(self.distances, post_job_seq, team):
+                    logger.info('temp job not valid: {}'.format(j))
+                    continue
+                else:
+                    # calculate fitness
+                    fitness = calculate_jobs_fitness(self.config, self.distances, post, team) - calculate_jobs_fitness(self.config, self.distances, pre, team)
+                    cand = [team,  position, j[0], j[1], fitness]
+                    self.add_candidate(Candidate(candidate=cand))
+
+                    
+    def add_candidate(self, candidate):
+        self.all_candidates.append(candidate)
+        candidate_job_map = self.candidates_by_job.get(candidate.job_key)
+        if candidate_job_map is None:
+            candidate_job_map = []
+            self.candidates_by_job[candidate.job_key] = candidate_job_map
+        candidate_job_map.append(candidate)
+            
+
+        candidate_team_map = self.candidates_by_team.get(candidate.team.id)
+        if candidate_team_map is None:
+            candidate_team_map = []
+            self.candidates_by_team[candidate.team.id] = candidate_team_map
+        candidate_team_map.append(candidate)
+
+        holders = self.candidate_holders.get(candidate.id, [])
+        holders.append(self.all_candidates)
+        holders.append(candidate_job_map)
+        holders.append(candidate_team_map)
+        self.candidate_holders[candidate.id] = holders
+
+    def remove_candidate(self, candidate):
+        candidate_jobs_map = self.candidates_by_job.get(candidate.job_key)
+        if candidate_jobs_map is not None:
+            for cand in candidate_jobs_map:
+                self.remove_from_all_containers(cand)
+
+        candidate_team_map = self.candidates_by_team.get(candidate.team.id)
+        if candidate_team_map is not None:
+            for cand in candidate_team_map:
+                self.remove_from_all_containers(cand)
+
+    def remove_from_all_containers(self, candidate):
+        for holder in self.candidate_holders.get(candidate.id, []):
+            if candidate in holder:
+                holder.remove(candidate)
+        if candidate.id in self.candidate_holders:
+            self.candidate_holders.pop(candidate.id)
+
+    def size(self):
+        return len(self.all_candidates)
+        
+
+
+
+    
+
+
+
+

@@ -9,9 +9,9 @@ validate that distances are present for all jobs
 '''
 def is_distance_valid_for_vehicle(distances, solution):
 
-    for i, team in enumerate(solution.teams):
+    for team in solution.teams:
 
-        jobs_seq = solution.get_job_seq_at(i).jobs_seq
+        jobs_seq = solution.get_job_seq_at(team.id).jobs_seq
 
         valid = is_distance_valid_for_job_vehicle(distances, jobs_seq, team)
 
@@ -38,9 +38,9 @@ def is_distance_valid_for_job_vehicle(distances, jobs_seq, team):
 validates if is within vahicle's load capacity constrains
 '''
 def is_journey_capacity_within_constrains(solution):
-    for i, team in enumerate(solution.teams):
+    for team in solution.teams:
 
-        jobs_seq = solution.get_job_seq_at(i).jobs_seq
+        jobs_seq = solution.get_job_seq_at(team.id).jobs_seq
 
         valid = is_journey_capacity_within_vehicle_constrain(jobs_seq, team.vehicle)
 
