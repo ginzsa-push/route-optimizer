@@ -15,8 +15,6 @@ logger.level = logging.INFO
 stream_handler = logging.StreamHandler(sys.stdout)
 logger.addHandler(stream_handler)
 
-
-
 class Optimizer:
     def __init__(self, *args, **kwargs):
         self.distances = Distances(distances=kwargs.get('matrix', None))
@@ -45,7 +43,6 @@ class Optimizer:
         # loop through n iterations
         for n in range(0, self.config['iterations']):
             logger.info('iteration no: {}'.format(n))
-            logger.info('initial jobs sequence: {}'.format(best_solution.get_job_seq_at(0).jobs_seq.jobs))
 
             # get current solution neighbours (pass tabu set)
             neighbourhood = collect_solution_neighbours(best_solution, set(tabu_queue))
@@ -73,7 +70,7 @@ class Optimizer:
             tabu_queue.extendleft(current_solution.affected_jobs)
             # reapair solution ??? TODO do we need it?
 
-        logger.info('best: {}'.format(len(best_fitness)))
+        logger.info('best: {}'.format(best_fitness))
         return { 'solution': best_solution, 'fitness': best_fitness}
 
     '''

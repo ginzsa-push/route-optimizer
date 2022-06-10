@@ -73,6 +73,11 @@ class TestOptimizer(unittest.TestCase):
 
         # then result should be not None
         self.assertTrue(rs)
+
+        for team in rs['solution'].teams:
+            print('team: ', team.id)
+            jseq = rs['solution'].get_job_seq_at(team.id)
+            print('jobs seq: ', jseq.jobs_seq)
         print(rs)
 
 

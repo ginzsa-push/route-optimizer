@@ -1,4 +1,6 @@
+from asyncio.log import logger
 from model import JobsSequence
+from model import TeamJobs
 
 
 '''
@@ -14,12 +16,17 @@ def calculate_total_time_in_seconds(distances, jobs_seq, team):
 calculate travel time for a job sequence
 this function includes start and end service points
 '''
-def total_travel_time_in_sec(distances, jobs_seq, team):
+def total_travel_time_in_sec(distances, to_measure, team):
     travel_time = 0
-    if type(jobs_seq) == JobsSequence:
-        jobs_to_process = [jobs_seq.start] + jobs_seq.jobs + [jobs_seq.end]
+
+    if type(to_measure) == TeamJobs:
+        to_measure =  to_measure.jobs_seq
+
+    if type(to_measure) == JobsSequence:
+        jobs_to_process = [to_measure.start] + to_measure.jobs + [to_measure.end]
     else:
-        jobs_to_process = jobs_seq
+        # assumed is a list
+        jobs_to_process = to_measure
     
     previous_job = None
     for job in jobs_to_process:

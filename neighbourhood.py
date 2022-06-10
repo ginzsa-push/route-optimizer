@@ -26,8 +26,8 @@ def swap_in_same_sequence(solution, jobs_to_ignore):
 
     solutions = [] 
     # iterate through team jobs
-    for idx, _ in enumerate(solution.teams):
-        j = solution.get_job_seq_at(idx)
+    for team in solution.teams:
+        j = solution.get_job_seq_at(team.id)
 
         logger.debug('get job sequence jobs: {}'.format(j))
         seq = j.jobs_seq.jobs
@@ -47,15 +47,15 @@ def swap_in_same_sequence(solution, jobs_to_ignore):
             new_solution = Solution(list(p_job), solution.teams)
             # add solution to the team
             for jb in p_job:
-                new_solution.add_job(jb, idx)
+                new_solution.add_job(jb, team.id)
 
-            # copy the same job values from other team different to idx
-            for si, _ in enumerate(solution.teams):
-                if si != idx:
+            # copy the same job values from other team different to team.id
+            for another_team in solution.teams:
+                if another_team.id != team.id:
                     
-                    in_jobs = solution.get_job_seq_at(si).jobs_seq.jobs
+                    in_jobs = solution.get_job_seq_at( another_team.id).jobs_seq.jobs
                     for in_job in in_jobs:
-                        new_solution.add_job(in_job, si)
+                        new_solution.add_job(in_job,  another_team.id)
 
             solutions.append(new_solution)
 
@@ -69,8 +69,8 @@ def shift_in_same_sequence(solution, jobs_to_ignore, width):
 
     logger.info("shift in same sequence ...")
     solutions = [] 
-    for idx, _ in enumerate(solution.teams):
-        j = solution.get_job_seq_at(idx)
+    for team in solution.teams:
+        j = solution.get_job_seq_at(team.id)
 
         logger.debug('get job sequence jobs: {}'.format(j))
         seq = j.jobs_seq.jobs
@@ -95,14 +95,14 @@ def shift_in_same_sequence(solution, jobs_to_ignore, width):
                     ######
                     # add solution to the team
                     for jb in new_seq:
-                        new_solution.add_job(jb, idx)
+                        new_solution.add_job(jb, team.id)
 
-                    # copy the same job values from other team different to idx
-                    for si, _ in enumerate(solution.teams):
-                        if si != idx:
-                            in_jobs = solution.get_job_seq_at(si).jobs_seq.jobs
+                    # copy the same job values from other team different to team.id
+                    for another_team in solution.teams:
+                        if another_team.id != team.id:
+                            in_jobs = solution.get_job_seq_at(another_team.id).jobs_seq.jobs
                             for in_job in in_jobs:
-                                new_solution.add_job(in_job, si)
+                                new_solution.add_job(in_job, another_team.id)
                     #####
                     solutions.append(new_solution)
 
@@ -114,8 +114,8 @@ def shift_in_same_sequence(solution, jobs_to_ignore, width):
 def swap_in_same_sequence_1(solution, jobs_to_ignore, width):
     logger.info("swap in same sequence ...")
     solutions = [] 
-    for idx, _ in enumerate(solution.teams):
-        j = solution.get_job_seq_at(idx)
+    for team in solution.teams:
+        j = solution.get_job_seq_at(team.id)
 
         logger.debug('get job sequence jobs: {}'.format(j))
         seq = j.jobs_seq.jobs
@@ -143,14 +143,14 @@ def swap_in_same_sequence_1(solution, jobs_to_ignore, width):
                     
                     # add solution to the team
                     for jb in new_seq:
-                        new_solution.add_job(jb, idx)
+                        new_solution.add_job(jb, team.id)
 
-                    # copy the same job values from other team different to idx
-                    for si, _ in enumerate(solution.teams):
-                        if si != idx:
-                            in_jobs = solution.get_job_seq_at(si).jobs_seq.jobs
+                    # copy the same job values from other team different to team.id
+                    for other_team in solution.teams:
+                        if other_team.id != team.id:
+                            in_jobs = solution.get_job_seq_at(other_team.id).jobs_seq.jobs
                             for in_job in in_jobs:
-                                new_solution.add_job(in_job, si)
+                                new_solution.add_job(in_job, team.id)
                     #####
                     solutions.append(new_solution)
 
@@ -185,8 +185,8 @@ def remove_solution_neighbourhood(solution, jobs_to_ignore):
     logger.info("remove in solution ...")
     solutions = [] 
 
-    for idx, _ in enumerate(solution.teams):
-        j = solution.get_job_seq_at(idx)
+    for team in solution.teams:
+        j = solution.get_job_seq_at(team.id)
 
         logger.debug('get job sequence jobs: {}'.format(j))
         seq = j.jobs_seq.jobs
@@ -205,14 +205,14 @@ def remove_solution_neighbourhood(solution, jobs_to_ignore):
 
             # add job to the team
             for jb in copy_seq:
-                new_solution.add_job(jb, idx)
+                new_solution.add_job(jb, team.id)
 
-            # copy the same job values from other team different to idx
-            for si, _ in enumerate(solution.teams):
-                if si != idx:
-                    in_jobs = solution.get_job_seq_at(si).jobs_seq.jobs
+            # copy the same job values from other team different to team.id
+            for another_team in solution.teams:
+                if another_team.id != team.id:
+                    in_jobs = solution.get_job_seq_at(another_team.id).jobs_seq.jobs
                     for in_job in in_jobs:
-                        new_solution.add_job(in_job, si)
+                        new_solution.add_job(in_job, another_team.id)
 
             solutions.append(new_solution)
 
@@ -227,8 +227,8 @@ def insert_unused_neighbourhood(solution, jobs_to_ignore):
 
         if jb not in jobs_to_ignore:
 
-            for idx, _ in enumerate(solution.teams):
-                j = solution.get_job_seq_at(idx)
+            for team in solution.teams:
+                j = solution.get_job_seq_at(team.id)
 
                 logger.debug('get job sequence jobs: {}'.format(j))
                 seq = j.jobs_seq.jobs
@@ -240,7 +240,7 @@ def insert_unused_neighbourhood(solution, jobs_to_ignore):
                     new_solution.affected_jobs.append(jb)
 
                     for job in new_seq:
-                        new_solution.add_job(job, idx)
+                        new_solution.add_job(job, team.id)
 
                     solutions.append(new_solution)
 
@@ -256,8 +256,8 @@ def replace_with_unused_neighbourhood(solution, jobs_to_ignore):
         # avoid unfulfilled jobs in 'to_ignore' list
         if jb not in jobs_to_ignore:
 
-            for idx, _ in enumerate(solution.teams):
-                j = solution.get_job_seq_at(idx)
+            for team in solution.teams:
+                j = solution.get_job_seq_at(team.id)
 
                 logger.debug('get job sequence jobs: {}'.format(j))
                 seq = j.jobs_seq.jobs           
@@ -271,7 +271,7 @@ def replace_with_unused_neighbourhood(solution, jobs_to_ignore):
                         new_solution.affected_jobs.append(jb)
                         
                         for job in new_seq:
-                            new_solution.add_job(job, idx)
+                            new_solution.add_job(job, team.id)
 
                         solutions.append(new_solution)
     return solutions

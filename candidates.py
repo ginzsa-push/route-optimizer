@@ -1,5 +1,5 @@
 import logging
-
+import sys
 from validation import is_cadidate_valid
 from fitness import calculate_jobs_fitness
 from utils import clone_pre_post_jobs, clone_pre_post_to_jobs
@@ -38,20 +38,17 @@ update candidates store for each iteration
 def update_candidates_store_for_solution(config, distances, candidates_store, team, to_solution):
 
     # if still have candidates
-    if candidates_store.size() > 0:
+    while candidates_store.size() > 0:
         # pick and remove best "move" candidate (peek from top)
         candidate = sort_get_best_candidate(candidates_store)
+        logger.info('candidate: {}'.format(candidate.candidate))
 
-        logger.debug('candidate: {}'.format(candidate))
         apply_candidate(to_solution, candidate)
         logger.debug('solution candidates ... {}'.format(to_solution.team_jobs_map[team.id].jobs_seq.jobs))
 
         # extract  more candidates with the new addition
         candidates_store.remove_candidate(candidate)
         candidates_store.create_candidates_for_team(to_solution.unfulfilled, to_solution.team_jobs_map[team.id])
-
-        # repeat
-        update_candidates_store_for_solution(config, distances, candidates_store, team, to_solution)
     
     logger.debug('... end candidate creation')
    
@@ -94,14 +91,17 @@ class CandidateStore:
                 # post addition job sequence
                 post_job_seq = JobsSequence(jobs=post, start=job_seq.start, end=job_seq.end)
                 # comply with validations : 
-                if not is_cadidate_valid(self.distances, post_job_seq, team):
-                    logger.info('temp job not valid: {}'.format(j))
-                    continue
-                else:
+                if is_cadidate_valid(self.distances, post_job_seq, team):
                     # calculate fitness
                     fitness = calculate_jobs_fitness(self.config, self.distances, post, team) - calculate_jobs_fitness(self.config, self.distances, pre, team)
-                    cand = [team,  position, j[0], j[1], fitness]
-                    self.add_candidate(Candidate(candidate=cand))
+                    if fitness != -sys.float_info.max:
+                        cand = [team,  position, j[0], j[1], fitness]
+                        self.add_candidate(Candidate(candidate=cand))
+
+                else:
+                    logger.debug('temp job not valid: {}'.format(j))
+                    continue
+                    
 
                     
     def add_candidate(self, candidate):
