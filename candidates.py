@@ -35,7 +35,7 @@ def apply_candidate(solution, candidate):
 '''
 update candidates store for each iteration
 '''
-def update_candidates_store_for_solution(config, distances, candidates_store, team, to_solution):
+def update_candidates_store_for_solution(candidates_store, team, to_solution):
 
     # if still have candidates
     while candidates_store.size() > 0:
@@ -52,12 +52,12 @@ def update_candidates_store_for_solution(config, distances, candidates_store, te
     
     logger.debug('... end candidate creation')
    
-def build_solution_candidate(config, distances, candidate_store, best_solution):
+def build_solution_candidate(candidate_store, best_solution):
 
     logger.info('building solution with candidates ... {}'.format(candidate_store.size()))
     for team in best_solution.teams:
         logger.info('extract candidate for solution for team:{} vehicle: {}'.format(team.id, team.vehicle))
-        update_candidates_store_for_solution(config, distances, candidate_store, team, best_solution)
+        update_candidates_store_for_solution(candidate_store, team, best_solution)
  
 '''
 jobs is list of dock id, no of broken bikes touples ' ('DOCK_0', 0) '
@@ -93,10 +93,10 @@ class CandidateStore:
                 # comply with validations : 
                 if is_cadidate_valid(self.distances, post_job_seq, team):
                     # calculate fitness
+                    logger.info('team job sequence size: {}'.format(len(post_job_seq.jobs)))
                     fitness = calculate_jobs_fitness(self.config, self.distances, post, team) - calculate_jobs_fitness(self.config, self.distances, pre, team)
                     if fitness != -sys.float_info.max:
-                        cand = [team,  position, j[0], j[1], fitness]
-                        self.add_candidate(Candidate(candidate=cand))
+                        self.add_candidate(Candidate(candidate=[team,  position, j[0], j[1], fitness]))
 
                 else:
                     logger.debug('temp job not valid: {}'.format(j))
@@ -135,13 +135,14 @@ class CandidateStore:
         if candidate_team_map is not None:
             for cand in candidate_team_map:
                 self.remove_from_all_containers(cand)
+                logger.info('all candidate size: {}'.format(len(self.all_candidates)))
 
     def remove_from_all_containers(self, candidate):
         for holder in self.candidate_holders.get(candidate.id, []):
             if candidate in holder:
                 holder.remove(candidate)
         if candidate.id in self.candidate_holders:
-            self.candidate_holders.pop(candidate.id)
+            del self.candidate_holders[candidate.id]
 
     def size(self):
         return len(self.all_candidates)

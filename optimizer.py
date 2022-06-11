@@ -33,7 +33,7 @@ class Optimizer:
         logger.info('candidate list created ... {}'.format(candidate_store.size()))
 
         # once we get the candidate list, build a solution with a jobs sequence
-        build_solution_candidate(self.config, self.distances, candidate_store, best_solution)
+        build_solution_candidate(candidate_store, best_solution)
 
         best_fitness = self.evaluate(best_solution)
         logger.info('original fitness: {}'.format(best_fitness))
