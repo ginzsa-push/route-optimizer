@@ -7,9 +7,10 @@ from model import TeamJobs
 calculate total time in seconds
 '''
 def calculate_total_time_in_seconds(distances, jobs_seq, team):
-    return total_travel_time_in_sec(distances, jobs_seq, team) + \
-            calc_load_time_seconds(jobs_seq, team.vehicle) + \
-            calc_stopping_time_seconds(jobs_seq, team.vehicle)
+    rs1 = total_travel_time_in_sec(distances, jobs_seq, team)
+    rs2 = calc_load_time_seconds(jobs_seq, team.vehicle)
+    rs3 = calc_stopping_time_seconds(jobs_seq, team.vehicle)
+    return (rs1 + rs2 + rs3)
 
 
 '''
@@ -22,10 +23,10 @@ def total_travel_time_in_sec(distances, to_measure, team):
     if type(to_measure) == TeamJobs:
         to_measure =  to_measure.jobs_seq
 
-    if type(to_measure) == JobsSequence:
+    if type(to_measure) == JobsSequence: # start and end included
         jobs_to_process = [to_measure.start] + to_measure.jobs + [to_measure.end]
     else:
-        # assumed is a list
+        # assumed is a list with start and end points
         jobs_to_process = to_measure
     
     previous_job = None

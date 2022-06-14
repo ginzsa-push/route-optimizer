@@ -99,7 +99,8 @@ def load_broken_bikes():
 
     jobs = []
     for item in data:
-        jobs.append((item['servicePointId'], item['numBikes']))
+        if not item['servicePointId'].startswith('DEPOT_'):
+            jobs.append((item['servicePointId'], item['numBikes']))
 
     return jobs
 
@@ -109,7 +110,7 @@ def load_distances_matrix():
     return matrix
 
 def get_vehicle():
-   return Vehicle(capacity=19, avg_load_time_sec=10, avg_stopping_time_sec=10)
+   return Vehicle(capacity=23, avg_load_time_sec=60, avg_stopping_time_sec=300)
 
 '''
 TODO

@@ -42,13 +42,13 @@ def update_candidates_store_for_solution(candidates_store, team, to_solution):
         # pick and remove best "move" candidate (peek from top)
         candidate = sort_get_best_candidate(candidates_store)
         logger.info('candidate: {}'.format(candidate.candidate))
+        if candidate is not None:
+            apply_candidate(to_solution, candidate)
+            logger.debug('solution candidates ... {}'.format(to_solution.team_jobs_map[team.id].jobs_seq.jobs))
 
-        apply_candidate(to_solution, candidate)
-        logger.debug('solution candidates ... {}'.format(to_solution.team_jobs_map[team.id].jobs_seq.jobs))
-
-        # extract  more candidates with the new addition
-        candidates_store.remove_candidate(candidate)
-        candidates_store.create_candidates_for_team(to_solution.unfulfilled, to_solution.team_jobs_map[team.id])
+            # extract  more candidates with the new addition
+            candidates_store.remove_candidate(candidate)
+            candidates_store.create_candidates_for_team(to_solution.unfulfilled, to_solution.team_jobs_map[team.id])
     
     logger.debug('... end candidate creation')
    
@@ -100,9 +100,7 @@ class CandidateStore:
 
                 else:
                     logger.debug('temp job not valid: {}'.format(j))
-                    continue
                     
-
                     
     def add_candidate(self, candidate):
         self.all_candidates.append(candidate)

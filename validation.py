@@ -100,16 +100,7 @@ def is_cadidate_valid(distances, jobs, team):
     rs = v1 and v2 and v3 and v4 
     logger.debug('four validations: {}, {}, {}, {} = {}'.format(v1, v2, v3, v4, rs))
     return rs
-                       
-
-
-'''
-extract a candidate jobs and validate it
-'''
-def is_solution_cadidate_valid(distances, solution, job, team_idx, position):
-    _, temp = clone_pre_post_jobs(position, solution, job, team_idx)
-    return is_cadidate_valid(distances, temp, solution.teams[team_idx])
-
+        
 
 '''
 validate solution
