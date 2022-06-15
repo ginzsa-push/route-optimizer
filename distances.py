@@ -22,5 +22,5 @@ class Distances:
         if dist is None:
             return -1
 
-        return dist['distance'] / team_speed * 60 * 60;
+        return (dist['distance'] / team_speed) * 60 * 60;
 

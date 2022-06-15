@@ -1,7 +1,7 @@
 import logging
 import sys
 from validation import is_cadidate_valid
-from fitness import calculate_jobs_fitness
+from fitness import job_fitness
 from utils import clone_pre_post_jobs, clone_pre_post_to_jobs
 from model import JobsSequence
 from model import Candidate
@@ -87,14 +87,14 @@ class CandidateStore:
             job_seq =  team_jobs.jobs_seq
              # put jobs in different index positions in the job sequence
             for position in range(0, len(job_seq.jobs) + 1):
-                pre, post = clone_pre_post_to_jobs(position, job_seq.jobs, j)
+                post = clone_pre_post_to_jobs(position, job_seq.jobs, j)
                 # post addition job sequence
                 post_job_seq = JobsSequence(jobs=post, start=job_seq.start, end=job_seq.end)
                 # comply with validations : 
                 if is_cadidate_valid(self.distances, post_job_seq, team):
                     # calculate fitness
                     logger.info('team job sequence size: {}'.format(len(post_job_seq.jobs)))
-                    fitness = calculate_jobs_fitness(self.config, self.distances, post, team) - calculate_jobs_fitness(self.config, self.distances, pre, team)
+                    fitness = (job_fitness(self.config, self.distances, post_job_seq, team) - job_fitness(self.config, self.distances, job_seq, team))
                     if fitness != -sys.float_info.max:
                         self.add_candidate(Candidate(candidate=[team,  position, j[0], j[1], fitness]))
 
@@ -106,16 +106,16 @@ class CandidateStore:
         self.all_candidates.append(candidate)
         candidate_job_map = self.candidates_by_job.get(candidate.job_key)
         if candidate_job_map is None:
-            candidate_job_map = []
+            candidate_job_map = set()
             self.candidates_by_job[candidate.job_key] = candidate_job_map
-        candidate_job_map.append(candidate)
+        candidate_job_map.add(candidate)
             
 
         candidate_team_map = self.candidates_by_team.get(candidate.team.id)
         if candidate_team_map is None:
-            candidate_team_map = []
+            candidate_team_map = set()
             self.candidates_by_team[candidate.team.id] = candidate_team_map
-        candidate_team_map.append(candidate)
+        candidate_team_map.add(candidate)
 
         holders = self.candidate_holders.get(candidate.id, [])
         holders.append(self.all_candidates)
@@ -126,21 +126,22 @@ class CandidateStore:
     def remove_candidate(self, candidate):
         candidate_jobs_map = self.candidates_by_job.get(candidate.job_key)
         if candidate_jobs_map is not None:
-            for cand in candidate_jobs_map:
+            for cand in candidate_jobs_map.copy():
                 self.remove_from_all_containers(cand)
 
         candidate_team_map = self.candidates_by_team.get(candidate.team.id)
         if candidate_team_map is not None:
-            for cand in candidate_team_map:
+            for cand in candidate_team_map.copy():
                 self.remove_from_all_containers(cand)
-                logger.info('all candidate size: {}'.format(len(self.all_candidates)))
-
+               
     def remove_from_all_containers(self, candidate):
         for holder in self.candidate_holders.get(candidate.id, []):
             if candidate in holder:
                 holder.remove(candidate)
         if candidate.id in self.candidate_holders:
             del self.candidate_holders[candidate.id]
+
+        logger.info('all candidate size: {}'.format(len(self.all_candidates)))
 
     def size(self):
         return len(self.all_candidates)

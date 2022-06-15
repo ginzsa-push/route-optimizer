@@ -14,9 +14,8 @@ make a copy of the pre jobs list and post job addition list
 '''
 def clone_pre_post_to_jobs(index, jobs, job):
     post = list(jobs)
-    pre = list(post)
     post.insert(index, job)
-    return pre, post
+    return post
 
 
 '''

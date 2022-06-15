@@ -14,12 +14,9 @@ def calculate_total_time_in_seconds(distances, jobs_seq, team):
 
 
 '''
-calculate travel time for a job sequence
-this function includes start and end service points
+extract jobs to process depending the type
 '''
-def total_travel_time_in_sec(distances, to_measure, team):
-    travel_time = 0
-
+def extract_jobs_to_process(to_measure):
     if type(to_measure) == TeamJobs:
         to_measure =  to_measure.jobs_seq
 
@@ -28,13 +25,39 @@ def total_travel_time_in_sec(distances, to_measure, team):
     else:
         # assumed is a list with start and end points
         jobs_to_process = to_measure
+
+    return jobs_to_process
+
+'''
+calculate travel time for a job sequence
+this function includes start and end service points
+'''
+def total_travel_time_in_sec(distances, to_measure, team):
+    travel_time = 0
+
+    jobs_to_process = extract_jobs_to_process(to_measure)
     
     previous_job = None
     for job in jobs_to_process:
         if previous_job is not None:
-            travel_time += distances.get_travel_time(previous_job, job, team.vehicle.speed)
+            travel_time += int(distances.get_travel_time(previous_job, job, team.vehicle.speed)) # note: as implementation, converted to int
         previous_job = job
     return travel_time
+
+'''
+return max single jouney time
+'''
+def max_single_travel_time_in_sec(distances, to_measure, team):
+    max_time = 0
+
+    jobs_to_process = extract_jobs_to_process(to_measure)
+    
+    previous_job = None
+    for job in jobs_to_process:
+        if previous_job is not None:
+            max_time = max(int(distances.get_travel_time(previous_job, job, team.vehicle.speed)), max_time) # note: as implementation, converted to int
+        previous_job = job
+    return max_time
 
 '''
 return time in seconds for the stopping time in each job 

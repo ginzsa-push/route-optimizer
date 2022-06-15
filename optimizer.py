@@ -62,7 +62,7 @@ class Optimizer:
                 if f > best_fitness:
                     best_solution = neighbour_solution
                     best_fitness = f
-                    logger.info('better: {}'.format(len(best_fitness)))
+                    logger.info('better: {}'.format(best_fitness))
 
             logger.info('best in iteration neghbourhood is: {}'.format(best_in_iteration))
 
