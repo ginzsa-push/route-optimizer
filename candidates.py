@@ -93,7 +93,7 @@ class CandidateStore:
                 # comply with validations : 
                 if is_cadidate_valid(self.distances, post_job_seq, team):
                     # calculate fitness
-                    logger.info('team job sequence size: {}'.format(len(post_job_seq.jobs)))
+                    logger.debug('team job sequence size: {}'.format(len(post_job_seq.jobs)))
                     fitness = (job_fitness(self.config, self.distances, post_job_seq, team) - job_fitness(self.config, self.distances, job_seq, team))
                     if fitness != -sys.float_info.max:
                         self.add_candidate(Candidate(candidate=[team,  position, j[0], j[1], fitness]))
@@ -141,7 +141,7 @@ class CandidateStore:
         if candidate.id in self.candidate_holders:
             del self.candidate_holders[candidate.id]
 
-        logger.info('all candidate size: {}'.format(len(self.all_candidates)))
+        logger.debug('all candidate size: {}'.format(len(self.all_candidates)))
 
     def size(self):
         return len(self.all_candidates)

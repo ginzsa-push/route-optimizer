@@ -62,7 +62,12 @@ jobs is list of dock id, no of broken bikes touples ' ('DOCK_0', 0) '
 class Solution:
     def __init__(self, jobs, teams):
         self.teams = teams
-        self.unfulfilled = dict((j[0], j[1]) for j in jobs)
+
+        if type(jobs) == dict: # for clone
+            self.unfulfilled = jobs
+        else:
+            self.unfulfilled = dict((j[0], j[1]) for j in jobs)
+
         self.team_jobs_map = {}
         self.affected_jobs = []
         for i, t in enumerate(teams):
@@ -106,12 +111,20 @@ class Solution:
     def clone(self):
         cloned_solution = Solution(copy.deepcopy(self.unfulfilled), copy.deepcopy(self.teams))
         # copy the same job values from other team different to idx
-        for si, _ in enumerate(self.teams):
-            in_jobs = self.get_job_seq_at(si).jobs_seq.jobs
-            for in_job in in_jobs:
-                cloned_solution.add_job(in_job, si)
+        for team in self.teams:
+            in_jobs = self.get_job_seq_at(team.id).jobs_seq.jobs
+            for idx, in_job in enumerate(in_jobs):
+                cloned_solution.add_job(in_job, team.id, job_seq_idx=idx)
                 
         return cloned_solution
+
+    def collect_all_jobs(self):
+        all_jobs = []
+        for team in self.teams:
+            in_jobs = self.get_job_seq_at(team.id).jobs_seq.jobs
+            all_jobs.append(in_jobs)
+        return all_jobs
+
 
 '''
 Candidate 

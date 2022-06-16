@@ -124,5 +124,5 @@ def validate_solution(distances, solution):
     v3 = is_journey_time_within_constrains(distances, solution)
     v4 = is_total_journey_time_within_constrains(distances, solution)
     rs = v1 and v2 and v3 and v4 
-    logger.info('solution four validations: {}, {}, {}, {} = {}'.format(v1, v2, v3, v4, rs))
+    logger.debug('solution four validations: {}, {}, {}, {} = {}'.format(v1, v2, v3, v4, rs))
     return rs

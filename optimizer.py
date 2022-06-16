@@ -68,7 +68,8 @@ class Optimizer:
 
             # tabu list
             tabu_queue.extendleft(current_solution.affected_jobs)
-            # reapair solution ??? TODO do we need it?
+            # reapair solution
+            current_solution = self.repair_solution(current_solution)
 
         logger.info('best: {}'.format(best_fitness))
         return { 'solution': best_solution, 'fitness': best_fitness}
@@ -82,4 +83,20 @@ class Optimizer:
             return - sys.float_info.max
 
         return calculate_fitness(self.config, self.distances, solution)
+
+    '''
+    repair the unfulfilled in solutions
+    '''
+    def repair_solution(self, solution):
+        cloned_solution = solution.clone() # no stats in it
+        jobs_fulfilled = cloned_solution.collect_all_jobs()
+        for job in self.jobs:
+            if job not in jobs_fulfilled and job[0] not in cloned_solution.unfulfilled.keys():
+                cloned_solution.unfulfilled[job[0]] = job[1]
+            elif job in jobs_fulfilled and job[0] in cloned_solution.unfulfilled.keys():
+                del cloned_solution.unfulfilled[job[0]]
+        
+        return cloned_solution
+
+
 
