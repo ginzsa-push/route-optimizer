@@ -1,6 +1,9 @@
 import logging
 import copy
+from operator import truediv
 import uuid
+import random
+from bidict import bidict
 
 logger = logging.getLogger()
 
@@ -150,3 +153,147 @@ class Candidate:
         self.job_key =  '{}-{}'.format(self.item, self.value)
         self.job = (self.item, self.value)
         self.id = str(uuid.uuid4())
+
+
+'''
+neighbourhood classess
+'''
+class ShiftInSameSequenceNeighbourhood:
+    def __init__(self, width, sample_freq):
+        self.width = width
+        self.sample_freq = sample_freq
+        self.id = str(uuid.uuid4())
+        self.intra_route_mover = IntraRouterMover()
+
+    '''
+    generate neighbourhood
+    '''
+    def generate_neighbourhood(self, solution, jobs_to_ignore):
+        random.seed(0)
+        solutions = []
+        split_points = AllowedConsecutiveSplitPointCreator(solution, jobs_to_ignore, self.width)
+        filtered_unfulfilled = self.create_filtered_unfulfilled(solution, jobs_to_ignore)
+        for team in solution.teams:
+            team_jobs = solution.get_job_seq_at(team.id)
+            for seq in split_points.split_point_map[team.id]:
+                start_a = seq[0]
+                end_excl = seq[-1] + 1
+                for start_b in range(0, len(team_jobs.jobs_seq.jobs)):
+                    if self.overlap(start_a, start_b):
+                        continue
+                    if self.symmetry(start_a, start_b):
+                        continue
+                    if random.uniform(0, 1.0) >= self.sample_freq:
+                        continue
+
+                    new_solution = self.generate_solution(solution, filtered_unfulfilled, team.id, start_a, end_excl, start_b)
+                    solutions.append(new_solution)
+
+        return solutions
+
+    def generate_solution(self, solution, filtered_unfulfilled, team_id, start_a, end_excl, start_b):
+        new_solution = solution.clone()
+        new_solution.unfulfilled = filtered_unfulfilled
+        team_jobs = new_solution.get_job_seq_at(team_id)
+        affected = self.intra_route_mover.move_sub_sequence(team_jobs.jobs_seq.jobs, start_a, end_excl, start_b)
+        new_solution.affected_jobs =  new_solution.affected_jobs + list(affected)
+        return new_solution
+    
+
+    def create_filtered_unfulfilled(self, solution, jobs_to_ignore):
+        unfulfilled_copy = copy.deepcopy(solution.unfulfilled)
+        for j in jobs_to_ignore:
+            if j[0] in unfulfilled_copy:
+                del unfulfilled_copy[j[0]]
+        return unfulfilled_copy
+
+    def overlap(self, start_a, start_b):
+        if start_b >= start_a and start_b < (start_a + self.width):
+            return True
+        return False
+
+    def symmetry(self, start_a, start_b):
+        if start_b == start_a - self.width:
+            return True
+        return False
+            
+
+class AllowedConsecutiveSplitPointCreator:
+    def __init__(self, solution, jobs_to_ignore, consecutive_point_width):
+        self.map_team = bidict({})
+        self.split_point_map = {}
+        for idx, team in enumerate(solution.teams):
+            self.map_team[idx] = team
+            self.split_point_map[team.id] = []
+            team_jobs = solution.get_job_seq_at(team.id)
+            jobs = team_jobs.jobs_seq.jobs
+            self.create_and_add_split_points_for_team(team, jobs, jobs_to_ignore, consecutive_point_width)
+
+    def create_and_add_split_points_for_team(self, team, jobs, jobs_to_ignore, consecutive_point_width):
+        for i in range(0, (len(jobs) - consecutive_point_width) + 1):
+            try:
+                sequence = self.create_valid_sequence(jobs, jobs_to_ignore, consecutive_point_width, i)
+                self.split_point_map.get(team.id).append(sequence)
+            except Exception as ex:
+                logger.warn(ex.args)
+
+    def create_valid_sequence(self, jobs, jobs_to_ignore, consecutive_point_width, i):
+        sequence = []
+        for j in range(i, (i + consecutive_point_width)):
+            if jobs[i] in jobs_to_ignore:
+                raise Exception (jobs[i], 'in ignore list')
+            else:
+                 sequence.append(j)
+        return sequence
+
+
+class IntraRouterMover:
+    def __init__(self):
+        self.id = str(uuid.uuid4())
+    '''
+    Moves subsequence within the same sequence
+    '''
+    def move_sub_sequence(self, jobs, start_a, end_a, start_b):
+        affected = set()
+        if start_b >= start_a:
+            for i in range(0, (end_a - start_a)):
+                job = jobs.pop(start_a)        
+                jobs.insert(start_b, job)
+                affected.add(job)
+        else:
+            for i in range(0, (end_a - start_a)):
+                job = jobs.pop(start_a + i)        
+                jobs.insert(start_b + i, job)
+                affected.add(job)
+
+        return affected
+    '''
+    Swaps sub-sequences of the same sequence
+    '''
+    def swap_sub_sequence(self, jobs, start_a, end_a, start_b, end_b):
+        width_a = end_a - start_a
+        width_b = end_b - start_b
+        affected = set()
+
+        if start_a < start_b:
+            for i in range(0, width_b):
+                job = jobs.pop(start_b + i)        
+                jobs.insert(start_a + i, job)
+                affected.add(job)
+            insert_point = start_b - 1 + width_b
+            for i in  range(0, width_a):
+                job = jobs.pop(start_a + width_b)
+                jobs.insert(insert_point, job)
+                affected.add(job)
+        else:
+            for i in range(0, width_a):
+                job = jobs.pop(start_a + i)
+                jobs.insert(start_b + i, job)
+                affected.add(job)
+            insert_point =  start_a - 1 + width_a
+            for i in range(0, width_b):
+                job = jobs.pop(start_b + width_a)
+                jobs.insert(insert_point, job)
+                affected.add(job)
+        return affected
+
