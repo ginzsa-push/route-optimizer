@@ -156,8 +156,9 @@ class Candidate:
 
 
 '''
-neighbourhood classess
+neighbourhood clasess
 '''
+# shift neighbourhood
 class ShiftInSameSequenceNeighbourhood:
     def __init__(self, width, sample_freq):
         self.width = width
@@ -297,3 +298,114 @@ class IntraRouterMover:
                 affected.add(job)
         return affected
 
+# swap neighbourhood
+class SwapInSameSequenceNeighbourhood:
+    def __init__(self, widtha, widthb, sample_freq):
+        self.width_a = widtha
+        self.width_b = widthb
+        self.sample_freq = sample_freq
+        self.intra_route_mover = IntraRouterMover()
+        self.id = str(uuid.uuid4())
+
+    '''
+    generate neighbourhood
+    '''
+    def generate_neighbourhood(self, solution, jobs_to_ignore):
+        random.seed(0)
+        solutions = []
+        split_points_a = AllowedConsecutiveSplitPointCreator(solution, jobs_to_ignore, self.width_a)
+        split_points_b = AllowedConsecutiveSplitPointCreator(solution, jobs_to_ignore, self.width_b)
+        filtered_unfulfilled = self.create_filtered_unfulfilled(solution, jobs_to_ignore)
+
+        for team in solution.teams:
+            team_jobs = solution.get_job_seq_at(team.id)
+            for seq_a in split_points_a.split_point_map[team.id]:
+                start_a = seq_a[0]
+                end_a = start_a + self.width_a
+
+                for seq_b in split_points_b.split_point_map[team.id]:
+                    start_b = seq_b[0]
+                    end_b = start_b + self.width_b
+
+                    if self.overlap(start_a, start_b):
+                        continue
+                    if self.symmetry(start_a, start_b):
+                        continue
+                    if random.uniform(0, 1.0) >= self.sample_freq:
+                        continue
+
+                    new_solution = self.generate_solution(solution, filtered_unfulfilled, team.id, start_a, end_b, start_b, end_b)
+                    solutions.append(new_solution)
+
+        return solutions
+
+    def generate_solution(self, solution, filtered_unfulfilled, team_id, starta, enda, startb, endb):
+        new_solution = solution.clone()
+        new_solution.unfulfilled = filtered_unfulfilled
+        team_jobs = new_solution.get_job_seq_at(team_id)
+        affected = self.intra_route_mover.swap_sub_sequence(team_jobs.jobs_seq.jobs, starta, enda, startb, endb)
+        new_solution.affected_jobs =  new_solution.affected_jobs + list(affected)
+        return new_solution
+    
+
+    def create_filtered_unfulfilled(self, solution, jobs_to_ignore):
+        unfulfilled_copy = copy.deepcopy(solution.unfulfilled)
+        for j in jobs_to_ignore:
+            if j[0] in unfulfilled_copy:
+                del unfulfilled_copy[j[0]]
+        return unfulfilled_copy
+
+    def overlap(self, start_a, start_b):
+        if start_a >= start_b and start_a < (start_b + self.width_b):
+            return True
+
+        if start_b >= start_a and start_b < (start_a + self.width_a):
+            return True
+        return False
+
+    def symmetry(self, start_a, start_b):
+        if self.width_a == self.width_b:
+            if start_a > start_b:
+                return True
+        return False
+
+# remove neighbours
+class RemoveSolutionNeighbourhood:
+    def __init__(self, sample_freq):
+        self.sample_freq = sample_freq
+        self.id = str(uuid.uuid4())
+        self.intra_route_mover = IntraRouterMover()
+    '''
+    generate neighbourhood
+    ''' 
+    def generate_neighbourhood(self, solution, jobs_to_ignore):
+        random.seed(0)
+        solutions = []
+        split_points = AllowedConsecutiveSplitPointCreator(solution, jobs_to_ignore, 1)
+        filtered_unfulfilled = self.create_filtered_unfulfilled(solution, jobs_to_ignore)
+        for team in solution.teams:
+            team_jobs = solution.get_job_seq_at(team.id)
+            for seq in split_points.split_point_map[team.id]:
+                if random.uniform(0, 1.0) >= self.sample_freq:
+                    continue
+                
+                new_solution = self.generate_solution(solution, filtered_unfulfilled, team.id, seq)
+                solutions.append(new_solution)
+        return solutions
+
+    def generate_solution(self, solution, filtered_unfulfilled, team_id, removal_seq):
+        new_solution = solution.clone()
+        new_solution.unfulfilled = filtered_unfulfilled
+        team_jobs = new_solution.get_job_seq_at(team_id)
+        for to_remove in removal_seq:
+            job = team_jobs.jobs_seq.jobs.pop(to_remove)
+            new_solution.affected_jobs.append(job)
+        return new_solution
+
+    def create_filtered_unfulfilled(self, solution, jobs_to_ignore):
+        unfulfilled_copy = copy.deepcopy(solution.unfulfilled)
+        for j in jobs_to_ignore:
+            if j[0] in unfulfilled_copy:
+                del unfulfilled_copy[j[0]]
+        return unfulfilled_copy
+                
