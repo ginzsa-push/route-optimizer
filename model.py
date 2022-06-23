@@ -231,18 +231,20 @@ class AllowedConsecutiveSplitPointCreator:
             self.create_and_add_split_points_for_team(team, jobs, jobs_to_ignore, consecutive_point_width)
 
     def create_and_add_split_points_for_team(self, team, jobs, jobs_to_ignore, consecutive_point_width):
-        for i in range(0, (len(jobs) - consecutive_point_width) + 1):
+
+        for idx in range(0, (len(jobs) - consecutive_point_width) + 1):
             try:
-                sequence = self.create_valid_sequence(jobs, jobs_to_ignore, consecutive_point_width, i)
+                sequence = self.create_valid_sequence(jobs, jobs_to_ignore, consecutive_point_width, idx)
                 self.split_point_map.get(team.id).append(sequence)
             except Exception as ex:
                 logger.debug(ex.args)
+                continue
 
     def create_valid_sequence(self, jobs, jobs_to_ignore, consecutive_point_width, i):
         sequence = []
         for j in range(i, (i + consecutive_point_width)):
             if jobs[i] in jobs_to_ignore:
-                raise Exception (jobs[i], 'in ignore list')
+                raise Exception (i, jobs[i])
             else:
                  sequence.append(j)
         return sequence
