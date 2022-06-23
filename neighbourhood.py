@@ -6,6 +6,8 @@ from model import Solution
 from model import SwapInSameSequenceNeighbourhood
 from model import ShiftInSameSequenceNeighbourhood
 from model import RemoveSolutionNeighbourhood
+from model import InsertUnusedNeighbourhood
+from model import ReplaceWithUnusedNeighbourhood
 
 
 logger = logging.getLogger()
@@ -293,6 +295,16 @@ def remove_solution_neighbourhood_v2(solution, tabu_set):
     neighbourhood = RemoveSolutionNeighbourhood(1.)
     rs = neighbourhood.generate_neighbourhood(solution, tabu_set)
     return rs
+
+def insert_unused_neighbourhood_v2(solution, tabu_set):
+    neighbourhood = InsertUnusedNeighbourhood(1.)
+    rs = neighbourhood.generate_neighbourhood(solution, tabu_set)
+    return rs
+
+def replace_unused_neighbourhood_v2(solution, tabu_set):
+    neighbourhood = ReplaceWithUnusedNeighbourhood(1.)
+    rs = neighbourhood.generate_neighbourhood(solution, tabu_set)
+    return rs
 '''
 generate nighbouring solutions
 '''
@@ -302,5 +314,5 @@ def collect_solution_neighbours(solution, tabu_set):
     return swap_in_same_sequence_v2(solution, tabu_set, 1, 1, freq) + swap_in_same_sequence_v2(solution, tabu_set, 2, 1, freq) + swap_in_same_sequence_v2(solution, tabu_set, 2, 2, freq) + \
         shift_in_the_same_sequence_v2(solution, tabu_set, 1, freq) + shift_in_the_same_sequence_v2(solution, tabu_set, 2, freq) + shift_in_the_same_sequence_v2(solution, tabu_set, 3, freq) + \
         remove_solution_neighbourhood_v2(solution, tabu_set) + \
-        insert_unused_neighbourhood(solution, tabu_set) + \
-        replace_with_unused_neighbourhood(solution, tabu_set)
+        insert_unused_neighbourhood_v2(solution, tabu_set) + \
+        replace_unused_neighbourhood_v2(solution, tabu_set)

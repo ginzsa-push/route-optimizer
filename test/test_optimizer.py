@@ -112,13 +112,6 @@ def load_distances_matrix():
 def get_vehicle():
    return Vehicle(capacity=23, avg_load_time_sec=60, avg_stopping_time_sec=300)
 
-'''
-TODO
-maxJourney = vehicleCharacteristic.getMaximumSingleJourney();
-if (maxJourney == null) { maxJourney = DEFAULT_MAX_JOURNEY; (15.)
-int maxDurationInSeconds = maxDurationInMinutes * 60;
-int maxSingleJourneyTime = (int) ((maxJourney / team.getSpeed()) * 60 * 60);
-'''
 def get_team():
    test_vehicle = get_vehicle()
    return Team(vehicle=test_vehicle, time_available_sec=25200, max_single_journey_time_sec=18000, starting_bikes_on_board=0) 

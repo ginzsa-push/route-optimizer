@@ -409,3 +409,90 @@ class RemoveSolutionNeighbourhood:
                 del unfulfilled_copy[j[0]]
         return unfulfilled_copy
                 
+# insert neighbour
+class InsertUnusedNeighbourhood:
+    def __init__(self, sample_freq):
+        self.sample_freq = sample_freq
+        self.id = str(uuid.uuid4())
+    
+    '''
+    generate neighbourhood
+    ''' 
+    def generate_neighbourhood(self, solution, jobs_to_ignore):
+        random.seed(0)
+        solutions = []
+        filtered_unfulfilled = self.create_filtered_unfulfilled(solution, jobs_to_ignore)
+        for key in filtered_unfulfilled:
+            job = (key, filtered_unfulfilled[key])
+            for team in solution.teams:
+                team_jobs = solution.get_job_seq_at(team.id)
+                for i in range(0, len(team_jobs.jobs_seq.jobs) + 1):
+                    if random.uniform(0, 1.0) >= self.sample_freq:
+                        continue
+                    new_solution = self.generate_solution(solution, filtered_unfulfilled, team.id, job, i)
+                    solutions.append(new_solution)
+        return solutions
+
+    def create_filtered_unfulfilled(self, solution, jobs_to_ignore):
+        unfulfilled_copy = copy.deepcopy(solution.unfulfilled)
+        for j in jobs_to_ignore:
+            if j[0] in unfulfilled_copy:
+                del unfulfilled_copy[j[0]]
+        return unfulfilled_copy
+
+    def generate_solution(self, solution, filtered_unfulfilled, team_id, job, idx):
+        new_solution = solution.clone()
+        new_solution.unfulfilled = filtered_unfulfilled
+        team_jobs = new_solution.get_job_seq_at(team_id)
+        team_jobs.jobs_seq.jobs.insert(idx, job)
+        new_solution.affected_jobs.append(job)
+        return new_solution
+
+# replace
+class ReplaceWithUnusedNeighbourhood:
+    def __init__(self, sample_freq):
+        self.sample_freq = sample_freq
+        self.id = str(uuid.uuid4())
+    
+    '''
+    generate neighbourhood
+    ''' 
+    def generate_neighbourhood(self, solution, jobs_to_ignore):
+        random.seed(0)
+        solutions = []
+        filtered_unfulfilled = self.create_filtered_unfulfilled(solution, jobs_to_ignore)
+        split_points = AllowedConsecutiveSplitPointCreator(solution, jobs_to_ignore, 1)
+
+        for key in filtered_unfulfilled:
+            job = (key, filtered_unfulfilled[key])
+            for team in solution.teams:
+                team_jobs = solution.get_job_seq_at(team.id)
+                for seq in split_points.split_point_map[team.id]:
+                    if len(seq) == 0:
+                        continue
+                    if random.uniform(0, 1.0) >= self.sample_freq:
+                        continue  
+                    new_solution = self.generate_solution(solution, filtered_unfulfilled, team.id, job, seq)
+                    solutions.append(new_solution)
+        return solutions
+
+    def create_filtered_unfulfilled(self, solution, jobs_to_ignore):
+        unfulfilled_copy = copy.deepcopy(solution.unfulfilled)
+        for j in jobs_to_ignore:
+            if j[0] in unfulfilled_copy:
+                del unfulfilled_copy[j[0]]
+        return unfulfilled_copy
+
+    def generate_solution(self, solution, filtered_unfulfilled, team_id, job, seq):
+        new_solution = solution.clone()
+        new_solution.unfulfilled = filtered_unfulfilled
+        team_jobs = new_solution.get_job_seq_at(team_id)
+        new_solution.affected_jobs.append(job)
+        for i in seq:
+            ijob =  team_jobs.jobs_seq.jobs.pop(i)
+            new_solution.affected_jobs.append(ijob)
+
+        team_jobs.jobs_seq.jobs.insert(seq[0], job)
+
+        return new_solution
+        

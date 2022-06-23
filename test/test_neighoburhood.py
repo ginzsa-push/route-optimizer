@@ -11,6 +11,8 @@ from model import Solution
 from model import ShiftInSameSequenceNeighbourhood
 from model import SwapInSameSequenceNeighbourhood
 from model import RemoveSolutionNeighbourhood
+from model import InsertUnusedNeighbourhood
+from model import ReplaceWithUnusedNeighbourhood
 
 from neighbourhood import swap_in_same_sequence, swap_in_same_sequence_1, shift_in_same_sequence, remove_solution_neighbourhood, insert_unused_neighbourhood, replace_with_unused_neighbourhood
 
@@ -676,6 +678,89 @@ class TestNeighbourhoodCandidateGeneration(unittest.TestCase):
 
         self.assertEqual(len(rs), 2)
         self.assertTrue(self.expected_in_oneof_following_variations_teams(expected_variations, rs))
+
+    def test_insert_from_unfulfilled_neighbourhood(self):
+        all_jobs = [('DOCK_A', 3), ('DOCK_B', 4), ('DOCK_E', 2),  ('DOCK_F', 4), ]
+        team = Team()
+
+        solution = Solution(all_jobs, [team])
+
+         # add to team 0
+        solution.add_job(all_jobs[0], team.id)
+        solution.add_job(all_jobs[1], team.id)
+        
+        neighbourhood = InsertUnusedNeighbourhood(1.)
+        rs = neighbourhood.generate_neighbourhood(solution, [])
+
+        expected_variations = [[ [('DOCK_E', 2), ('DOCK_A', 3), ('DOCK_B', 4)],
+                                 [('DOCK_A', 3), ('DOCK_E', 2), ('DOCK_B', 4)],
+                                 [('DOCK_A', 3), ('DOCK_B', 4), ('DOCK_E', 2)],
+                                 [('DOCK_F', 4), ('DOCK_A', 3), ('DOCK_B', 4)],
+                                 [('DOCK_A', 3), ('DOCK_F', 4), ('DOCK_B', 4)],
+                                 [('DOCK_A', 3), ('DOCK_B', 4), ('DOCK_F', 4)]]]
+
+        self.assertEqual(len(rs), 6)
+        self.assertTrue(self.expected_in_following_variations(expected_variations, rs))
+
+    def test_insert_from_unfulfilled_neighbourhood_except_with_blocked_job(self):
+        # unused = [('DOCK_C', 6), ('DOCK_D', 1)]
+        all_jobs = [('DOCK_A', 3), ('DOCK_B', 4), ('DOCK_E', 2),  ('DOCK_F', 4)]
+        team = Team()
+
+        solution = Solution(all_jobs, [team])
+
+         # add to team 0
+        solution.add_job(all_jobs[0], team.id)
+        solution.add_job(all_jobs[1], team.id)
+        
+        neighbourhood = InsertUnusedNeighbourhood(1.)
+        rs = neighbourhood.generate_neighbourhood(solution, [('DOCK_E', 2)])
+
+        expected_variations = [[ [('DOCK_F', 4), ('DOCK_A', 3), ('DOCK_B', 4)],
+                                 [('DOCK_A', 3), ('DOCK_F', 4), ('DOCK_B', 4)],
+                                 [('DOCK_A', 3), ('DOCK_B', 4), ('DOCK_F', 4)] ]]
+
+        self.assertEqual(len(rs), 3)
+
+    def test_replace_from_unfulfilled_neighbourhood(self):
+
+        all_jobs = [('DOCK_A', 3), ('DOCK_B', 4), ('DOCK_E', 2),  ('DOCK_F', 4)]
+        team = Team()
+
+        solution = Solution(all_jobs, [team])
+
+        # add to team 0
+        solution.add_job(all_jobs[0], team.id)
+        solution.add_job(all_jobs[1], team.id)
+        
+        neighbourhood = ReplaceWithUnusedNeighbourhood(1.)
+        rs = neighbourhood.generate_neighbourhood(solution, [])
+
+        expected_variations = [[[('DOCK_E', 2), ('DOCK_B', 4)],
+                                [('DOCK_A', 3), ('DOCK_E', 2)],
+                                [('DOCK_F', 4), ('DOCK_B', 4)],
+                                [('DOCK_A', 3), ('DOCK_F', 4)]]]
+
+        self.assertEqual(len(rs), 4)
+        self.assertTrue(self.expected_in_following_variations(expected_variations, rs))
+
+    def test_replace_from_unfulfilled_neighbourhood_with_blocked_jobs(self):
+        all_jobs = [('DOCK_A', 3), ('DOCK_B', 4), ('DOCK_E', 2),  ('DOCK_F', 4)]
+        team = Team()
+
+        solution = Solution(all_jobs,  [team])
+
+        # add to team 0
+        solution.add_job(all_jobs[0], team.id)
+        solution.add_job(all_jobs[1], team.id)
+
+        neighbourhood = ReplaceWithUnusedNeighbourhood(1.)
+        rs = neighbourhood.generate_neighbourhood(solution, [('DOCK_E', 2), ('DOCK_A', 3)])
+
+        expected_variations = [[[('DOCK_A', 3), ('DOCK_F', 4)]]]
+            
+        self.assertEqual(len(rs), 1)
+        self.assertTrue(self.expected_in_following_variations(expected_variations, rs))
 
 if __name__ == '__main__':
     unittest.main()
