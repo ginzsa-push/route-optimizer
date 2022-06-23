@@ -311,8 +311,10 @@ generate nighbouring solutions
 def collect_solution_neighbours(solution, tabu_set):
     logger.info('collect neighbours')
     freq = 1.0
+
     return swap_in_same_sequence_v2(solution, tabu_set, 1, 1, freq) + swap_in_same_sequence_v2(solution, tabu_set, 2, 1, freq) + swap_in_same_sequence_v2(solution, tabu_set, 2, 2, freq) + \
         shift_in_the_same_sequence_v2(solution, tabu_set, 1, freq) + shift_in_the_same_sequence_v2(solution, tabu_set, 2, freq) + shift_in_the_same_sequence_v2(solution, tabu_set, 3, freq) + \
-        remove_solution_neighbourhood_v2(solution, tabu_set) + \
         insert_unused_neighbourhood_v2(solution, tabu_set) + \
+        remove_solution_neighbourhood_v2(solution, tabu_set) +\
         replace_unused_neighbourhood_v2(solution, tabu_set)
+

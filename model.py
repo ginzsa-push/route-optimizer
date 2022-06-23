@@ -236,7 +236,7 @@ class AllowedConsecutiveSplitPointCreator:
                 sequence = self.create_valid_sequence(jobs, jobs_to_ignore, consecutive_point_width, i)
                 self.split_point_map.get(team.id).append(sequence)
             except Exception as ex:
-                logger.warn(ex.args)
+                logger.debug(ex.args)
 
     def create_valid_sequence(self, jobs, jobs_to_ignore, consecutive_point_width, i):
         sequence = []
