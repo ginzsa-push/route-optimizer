@@ -80,9 +80,6 @@ class TestOptimizer(unittest.TestCase):
             print('jobs seq: ', jseq.jobs_seq)
         print(rs)
 
-
-    
-
 def create_optimizer():
     jobs = load_broken_bikes()
     matrix = load_distances_matrix()
