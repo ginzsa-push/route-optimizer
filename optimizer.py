@@ -21,7 +21,6 @@ class Optimizer:
         self.jobs = kwargs.get('jobs', None)
         self.teams = kwargs.get('teams', None)
         self.config = kwargs.get('config', None)
-        self.tabulist =[]
 
     def optimize(self):
         logger.info('optimizing ...')
