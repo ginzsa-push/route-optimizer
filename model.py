@@ -217,6 +217,9 @@ class ShiftInSameSequenceNeighbourhood:
         if start_b == start_a - self.width:
             return True
         return False
+    
+    def __repr__(self):
+        return f"{self.__class__.__name__}(width={self.width}, freq={self.sample_freq})"
             
 
 class AllowedConsecutiveSplitPointCreator:
@@ -370,6 +373,9 @@ class SwapInSameSequenceNeighbourhood:
             if start_a > start_b:
                 return True
         return False
+    
+    def __repr__(self):
+        return f"{self.__class__.__name__}(width_a={self.width_a}, width_b={self.width_b}, freq={self.sample_freq})"
 
 # remove neighbours
 class RemoveSolutionNeighbourhood:
@@ -410,6 +416,9 @@ class RemoveSolutionNeighbourhood:
             if j[0] in unfulfilled_copy:
                 del unfulfilled_copy[j[0]]
         return unfulfilled_copy
+    
+    def __repr__(self):
+        return f"{self.__class__.__name__}(freq={self.sample_freq})"
                 
 # insert neighbour
 class InsertUnusedNeighbourhood:
@@ -449,6 +458,9 @@ class InsertUnusedNeighbourhood:
         team_jobs.jobs_seq.jobs.insert(idx, job)
         new_solution.affected_jobs.append(job)
         return new_solution
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(freq={self.sample_freq})"
 
 # replace
 class ReplaceWithUnusedNeighbourhood:
@@ -497,4 +509,6 @@ class ReplaceWithUnusedNeighbourhood:
         team_jobs.jobs_seq.jobs.insert(seq[0], job)
 
         return new_solution
-        
+    
+    def __repr__(self):
+        return f"{self.__class__.__name__}(freq={self.sample_freq})"
