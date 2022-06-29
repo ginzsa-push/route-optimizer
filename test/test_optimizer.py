@@ -43,6 +43,7 @@ class TestOptimizer(unittest.TestCase):
         mtx = optimizer.distances
         tms = optimizer.teams
         cnf = optimizer.config
+        dps = optimizer.depos
 
         # then optimizer is not None and has all its components
         self.assertTrue(optimizer is not None)
@@ -58,6 +59,9 @@ class TestOptimizer(unittest.TestCase):
 
         self.assertTrue(tms is not None)
         self.assertTrue(len(tms) == 1)
+
+        self.assertTrue(dps is not None)
+        self.assertTrue(len(dps) > 0)
 
 
     def test_optimizer_run(self):
