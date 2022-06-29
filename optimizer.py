@@ -17,10 +17,11 @@ logger.addHandler(stream_handler)
 
 class Optimizer:
     def __init__(self, *args, **kwargs):
-        self.distances = Distances(distances=kwargs.get('matrix', None))
-        self.jobs = kwargs.get('jobs', None)
-        self.teams = kwargs.get('teams', None)
-        self.config = kwargs.get('config', None)
+        self.distances = Distances(distances=kwargs.get('matrix'))
+        self.jobs = kwargs.get('jobs')
+        self.teams = kwargs.get('teams')
+        self.config = kwargs.get('config')
+        self.depos = kwargs.get('depos')
 
     def optimize(self):
         logger.info('optimizing ...')
@@ -33,6 +34,7 @@ class Optimizer:
 
         # once we get the candidate list, build a solution with a jobs sequence
         build_solution_candidate(candidate_store, best_solution)
+        self.manipulate_solution(best_solution)
 
         best_fitness = self.evaluate(best_solution)
         logger.info('original fitness: {}'.format(best_fitness))
@@ -96,6 +98,45 @@ class Optimizer:
                 del cloned_solution.unfulfilled[job[0]]
         
         return cloned_solution
+
+    '''
+    manipulate solution
+    '''
+    def manipulate_solution(self, solution, pos=0):
+        logger.info('manipulate solution')
+        for team in solution.teams:
+            job_seq = solution.get_job_seq_at(team.id).jobs_seq
+            if job_seq.start is None:
+                job_seq.start = self.default_depot
+            else:
+                job_seq.start = team.start_depo
+
+            if team.allowed_end_depot == None or len(team.allowed_end_depot) == 0:
+                job_seq.end = self.default_depot
+            else:
+                if len(job_seq.jobs) == 0:
+                    last  = job_seq.start
+                else:
+                    last = job_seq.jobs[pos]
+                
+                job_seq.end = self.my_near_depo(last, team.allowed_end_depot)
+                    
+    def my_near_depo(self, service_point, allowed_end_depos):
+        if allowed_end_depos is not None:
+            allawed_depos = [x for x in self.depos if x not in allowed_end_depos]
+        else:
+            allawed_depos = self.depos
+        
+        if len(allawed_depos) == 1:
+            return allawed_depos[0]
+
+        near_depo_dist = None
+        for depo in allawed_depos:
+            time_to_depo = self.distances.get_travel_time(service_point, depo)
+            if near_depo_dist is None or time_to_depo < near_depo_dist[1]:
+                near_depo_dist = (depo, time_to_depo)
+
+        return near_depo_dist[0]
 
 
 

@@ -26,7 +26,7 @@ from distances import Distances
 class TestOptimizer(unittest.TestCase):
 
     def test_optimizer_load_test_data(self):
-        jobs = load_broken_bikes()
+        jobs, _ = load_broken_bikes()
         self.assertTrue(jobs is not None)
         self.assertTrue(len(jobs) > 0)
         self.assertTrue(type(jobs[0]) == tuple) 
@@ -77,12 +77,12 @@ class TestOptimizer(unittest.TestCase):
         print(rs)
 
 def create_optimizer():
-    jobs = load_broken_bikes()
+    jobs, depos = load_broken_bikes()
     matrix = load_distances_matrix()
     config = {'tabu_size': 4, 'iterations': 10, 'bike_weight':10_000, 'time_weight': 1}
     teams = [get_team()]
 
-    return Optimizer(jobs=jobs, matrix=matrix, config=config, teams=teams)
+    return Optimizer(jobs=jobs, matrix=matrix, config=config, teams=teams, depos=depos)
 
 def load_broken_bikes():
     
@@ -91,11 +91,19 @@ def load_broken_bikes():
         data = json.load(json_file) 
 
     jobs = []
+    assumed_depo = []
     for item in data:
-        if not item['servicePointId'].startswith('DEPOT_'):
+        if there_is_a_job(item['numBikes']):
             jobs.append((item['servicePointId'], item['numBikes']))
+        else:
+            assumed_depo.append((item['servicePointId'], item['numBikes']))
+    return jobs, assumed_depo
 
-    return jobs
+'''
+Assuming that there is a job where there is bikes to collect
+'''
+def there_is_a_job(number_of_bikes):
+    return number_of_bikes > 0
 
 def load_distances_matrix():
     test_data_distance = './test/data/ba/distances.json'

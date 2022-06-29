@@ -89,7 +89,7 @@ class CandidateStore:
             for position in range(0, len(job_seq.jobs) + 1):
                 post = clone_pre_post_to_jobs(position, job_seq.jobs, j)
                 # post addition job sequence
-                post_job_seq = JobsSequence(jobs=post, start=job_seq.start, end=job_seq.end)
+                post_job_seq = JobsSequence(jobs=post, start=job_seq.start, end=job_seq.end, team=team)
                 # comply with validations : 
                 if is_cadidate_valid(self.distances, post_job_seq, team):
                     # calculate fitness

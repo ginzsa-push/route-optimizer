@@ -21,8 +21,9 @@ class Team:
         self.time_available_sec = kwargs.get('time_available_sec', None) 
         self.max_single_journey_time_sec = kwargs.get('max_single_journey_time_sec', None) 
         self.starting_bikes_on_board = kwargs.get('starting_bikes_on_board', None) 
-        self.allowedEndDepot = []
+        self.allowed_end_depot = ['DEPOT_1']
         self.id = str(uuid.uuid4())
+        self.start_depo = kwargs.get('start_depo', self.allowed_end_depot[0])
 
 '''
 job sequence contain a list 'sequence' of touple ('DOCK_2',3) jobs
@@ -31,13 +32,12 @@ it also contain the start and end ds
 class JobsSequence:
 
     def __init__(self, *args, **kwargs):
+        self.team = kwargs.get('team')
         jobs_seq = kwargs.get('jobs_seq', None)
-
         if jobs_seq is None:
             self.jobs = kwargs.get('jobs', [])
-            #TODO assume hardcoded value! 
-            self.start = kwargs.get('start', ('DEPOT_1', 0))
-            self.end = kwargs.get('end', ('DEPOT_1', 0))
+            self.start = kwargs.get('start', (self.team.start_depo, 0))
+            self.end = kwargs.get('end', (self.team.start_depo, 0))
         else:
             self.jobs.append(jobs_seq.jobs)
             self.start = jobs_seq.start
@@ -55,9 +55,9 @@ class TeamJobs:
         jbs_seq = kwargs.get('jobs_seq', None)
 
         if jbs_seq is None:
-            self.jobs_seq = JobsSequence()
+            self.jobs_seq = JobsSequence(team=self.team)
         else:
-            self.jobs_seq = JobsSequence(jbs_seq)
+            self.jobs_seq = JobsSequence(jobs_seq=jbs_seq, team=self.team)
 
 '''
 jobs is list of dock id, no of broken bikes touples ' ('DOCK_0', 0) '
