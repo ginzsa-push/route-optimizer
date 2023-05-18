@@ -1,6 +1,9 @@
 # route-optimizer
 
-Initial python version of tagged project (not finished) 
+Initial python version of routing optimization project
+
+Implementation of the Tabu Search algorithm
+
 
 # distance metric standarized mapping
 
