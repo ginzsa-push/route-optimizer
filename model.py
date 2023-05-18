@@ -323,10 +323,8 @@ class SwapInSameSequenceNeighbourhood:
         filtered_unfulfilled = self.create_filtered_unfulfilled(solution, jobs_to_ignore)
 
         for team in solution.teams:
-            team_jobs = solution.get_job_seq_at(team.id)
             for seq_a in split_points_a.split_point_map[team.id]:
                 start_a = seq_a[0]
-                end_a = start_a + self.width_a
 
                 for seq_b in split_points_b.split_point_map[team.id]:
                     start_b = seq_b[0]
