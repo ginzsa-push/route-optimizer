@@ -2,7 +2,7 @@ import logging
 import sys
 from validation import is_cadidate_valid
 from fitness import job_fitness
-from utils import clone_pre_post_jobs, clone_pre_post_to_jobs
+from utils import clone_pre_post_to_jobs
 from model import JobsSequence
 from model import Candidate
 
