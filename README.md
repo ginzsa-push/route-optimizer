@@ -4,7 +4,7 @@ This is a "basic" python implementation of routing optimization that use a Tabu 
 
 There are Service Points with Items, a Vehicle that collects items and a Team with many Vehicles
 
-We have Job represented as a touple (<SPID>, <NO_OF_ITEMS>) and the are organized as a sequence of jobs Job_Sequence.
+We have Job represented as a touple (SP_ID, NO_OF_ITEMS) and the are organized as a sequence of jobs Job_Sequence.
 TeamJob has (put together) a Job_Sequence and a Team
 
 Solution, Candidate and Neighbourhood classes are use for the searching algorithm
