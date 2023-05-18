@@ -1,30 +1,36 @@
 # route-optimizer
 
-Initial python version of routing optimization project
+This is a "basic" python implementation of routing optimization that use a Tabu Search algorithm
 
-Implementation of the Tabu Search algorithm
 
 
 # distance metric standarized mapping
+This are the location and the state of each SPs (Service Point) in a map (plane)
 
-First step load locations
+## Load locations
 map location:
 data path: 'spList/items'
+
 e.g.:
+```
 {'id':''spId', 'x':'lng', 'y':'lat', 'meta':{}}
+```
 location
 - id
 - x (longitude)
 - y (latitude)
 - meta
 
-Second step create distance matrix
+## Create distance matrix
 map distance matrix
 data path: 'spDMResult/items'
 e.g.: 
 distance will have the default map of 'distance'
-meta: will include the remaining data.
+meta: will include additional data that could be aggregated.
+
+```
 {'origin': 'originSpId', 'destination':'destinationSpId', 'meta':{}}
+```
 
 simplfy standards and map data
 - origin
@@ -32,3 +38,9 @@ simplfy standards and map data
 - distannce
 - meta
 
+### How to test it?
+
+Run the following script
+```
+python test_optimizer.py
+```

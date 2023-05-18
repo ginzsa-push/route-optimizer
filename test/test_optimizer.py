@@ -4,7 +4,6 @@ import json
 
 # keep this as an example
 '''
-GRAPHQL EXAMPLE
 
 {
   DistanceMatrix(where:{spId1:{_in:["DEPOT_1", "DEPOT_2"]}}) {
