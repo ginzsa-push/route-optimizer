@@ -60,7 +60,7 @@ class TeamJobs:
             self.jobs_seq = JobsSequence(jobs_seq=jbs_seq, team=self.team)
 
 '''
-jobs is list of dock id, no of broken items touples ' ('DOCK_0', 0) '
+jobs is list of dock id, no of selected items touples ' ('DOCK_0', 0) '
 '''
 class Solution:
     def __init__(self, jobs, teams):

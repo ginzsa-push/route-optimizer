@@ -25,7 +25,7 @@ from distances import Distances
 class TestOptimizer(unittest.TestCase):
 
     def test_optimizer_load_test_data(self):
-        jobs, _ = load_broken_items()
+        jobs, _ = load_selected_items()
         self.assertTrue(jobs is not None)
         self.assertTrue(len(jobs) > 0)
         self.assertTrue(type(jobs[0]) == tuple) 
@@ -80,14 +80,14 @@ class TestOptimizer(unittest.TestCase):
         print(rs)
 
 def create_optimizer():
-    jobs, depos = load_broken_items()
+    jobs, depos = load_selected_items()
     matrix = load_distances_matrix()
     config = {'tabu_size': 4, 'iterations': 10, 'item_weight':10_000, 'time_weight': 1}
     teams = [get_team()]
 
     return Optimizer(jobs=jobs, matrix=matrix, config=config, teams=teams, depos=depos)
 
-def load_broken_items():
+def load_selected_items():
     
     test_data_location = './test/data/ba/lockedinitems-2019-08-28--23-00.json'
     with open(test_data_location) as json_file:
