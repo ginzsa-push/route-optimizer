@@ -1,6 +1,6 @@
 # route-optimizer
 
-This is a "basic" python implementation of routing optimization that use a Tabu Search algorithm
+This is a "basic" python implementation of routing optimization that uses a Tabu Search algorithm
 
 There are Service Points with Items, a Vehicle that collects items and a Team with many Vehicles
 
